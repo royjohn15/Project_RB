@@ -1,12 +1,9 @@
 # imports
 import streamlit as st
-from streamlit_date_picker import date_range_picker, PickerType
-from streamlit_calendar import calendar
-from components.calendar_features import calendar_configuration
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from db.db import *
-
-
+import plotly.express as px
+import pandas as pd
 
 # set app layout to full page
 st.set_page_config(layout = "wide")
@@ -42,8 +39,10 @@ def main():
     # view rooms
     st.header('Rooms List')
     rooms = get_rooms()
+    room_ids = []
     for room in rooms:
         room_id, capacity, building = room
+        room_ids.append(room_id)
         delete_button_id = f'delete_button_{room_id}'
 
         col1, col2, col3, col4 = st.columns([2, 3, 2, 1])
@@ -59,11 +58,24 @@ def main():
     
     # room booking
     st.title("Book Room")
+    room_selected = st.selectbox("Choose a room", options = room_ids)
+    dates_choosen = st.date_input(
+                'Choose the date',
+                date.today(),
+                format = 'MM.DD.YYYY'
+            )
 
-    room_id = st.text_input('**Room Number:**', key = 'room_id')
-    calendar_options, custom_css = calendar_configuration()
-    cal = calendar(options = calendar_options, custom_css = custom_css)
-    st.write(cal)
+    start_time = st.time_input("Start time", value = None)
+    end_time = st.time_input("End time", value = None)
+    event = st.text_input("Event")
+    booked_for = st.text_input("Booked by")
+    
+    if st.button('Book Room'):
+        if room_selected and dates_choosen and start_time and end_time and event and booked_for:
+            add_booking(room_selected, dates_choosen, start_time, end_time, event, booked_for)
+            st.success("Booking Successful")
+        else:
+            st.warning('Please enter all the fields.')
 
 
 if __name__ == '__main__':
