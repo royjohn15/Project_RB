@@ -50,6 +50,15 @@ def get_bookings():
     conn.close()
     return bookings
 
+# Retrieve bookings by date
+def get_bookings_by_date(date):
+    conn = sqlite3.connect('database.db')
+    c = conn.cursor()
+    c.execute('SELECT room_id, start_time, end_time FROM BOOKINGS WHERE date = ?', (str(date),))
+    bookings = c.fetchall()
+    conn.close()
+    return bookings
+
 
 
 
