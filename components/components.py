@@ -4,7 +4,7 @@ import pandas as pd
 from datetime import datetime, date
 
 def is_overlapping_booking(new_start, new_end, existing_start, existing_end):
-    return new_start < existing_end or new_end > existing_start
+    return new_start < existing_end and new_end > existing_start
 
 def addRoom():
     col1, col2, col3 = st.columns(3)
@@ -34,7 +34,8 @@ def getRooms():
     rooms = get_rooms()
     if rooms:
         room_df = pd.DataFrame(rooms, columns=["Room Number", "Capacity", "Building"])
-        st.dataframe(room_df.reset_index(drop=True))  # Display table without index
+        room_df = room_df.reset_index(drop = True)
+        st.dataframe(room_df.reset_index(drop=True), use_container_width = True)  # Display table without index
     else:
         st.write("No rooms available.")
 
@@ -80,5 +81,23 @@ def addBooking():
     else:
         st.warning('No rooms available for booking. Please add rooms first.')
 
+def getBookings():
+    bookings = get_bookings()
+    if bookings:
+        booking_dict = {
+            'Rooms': [],
+            'Dates': [],
+            'Start Time': [],
+            'End Time': [],
+            'Booked For': [],
+            'Booked By': [],
+        }
 
-
+        for booking in bookings:
+            room_id, bookedSdate, start_time, end_time, booked_for, booked_by = booking
+            booking_dict['Rooms'].append(room_id)
+            booking_dict['Dates'].append(booked_date)
+            booking_dict['Start Time'].append(start_time)
+            booking_dict['End Time'].append(end_time)
+            booking_dict['Booked For'].append(booked_for)
+            booking_dict['Booked By'].append(booked_by)

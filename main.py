@@ -8,10 +8,10 @@ def main():
 
     with tabs[1]:
         addBooking()
-    
+
     with tabs[2]:
         getRooms()
-         
+
     with tabs[3]:
         addRoom()
 
