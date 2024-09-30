@@ -1,14 +1,15 @@
 import streamlit as st
-import plotly.express as px
-from components.components import addRoom, getRooms, addBooking
+from components.components import addRoom, getRooms, addBooking, getBookings
 
 
 def main():
     tabs = st.tabs(['View Bookings', 'Book Room', 'View Rooms', 'Add Rooms', 'Room Statistics'])
 
+    with tabs[0]:
+        getBookings()
+
     with tabs[1]:
         addBooking()
-
     with tabs[2]:
         getRooms()
 

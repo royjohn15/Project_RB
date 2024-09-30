@@ -2,9 +2,10 @@ import streamlit as st
 from .db import *
 import pandas as pd
 from datetime import datetime, date
+import plotly.express as px
 
-def is_overlapping_booking(new_start, new_end, existing_start, existing_end):
-    return new_start < existing_end and new_end > existing_start
+def is_overlapping_booking(new_room, new_start, new_end, existing_room, existing_start, existing_end):
+    return new_start < existing_end and new_end > existing_start and new_room == existing_room 
 
 def addRoom():
     col1, col2, col3 = st.columns(3)
@@ -65,10 +66,10 @@ def addBooking():
                 existing_bookings = get_bookings_by_date(date_chosen)
                 overlapfound = False
                 for booking in existing_bookings:
-                    existing_start_time, existing_end_time = booking[1], booking[2]
+                    existing_room, existing_start_time, existing_end_time = booking[0], booking[1], booking[2]
                     existing_start = datetime.combine(date_chosen, datetime.strptime(existing_start_time, "%H:%M:%S").time())
                     existing_end = datetime.combine(date_chosen,  datetime.strptime(existing_end_time, "%H:%M:%S").time())
-                    if is_overlapping_booking(new_start, new_end, existing_start, existing_end):
+                    if is_overlapping_booking(room_selected, new_start, new_end, existing_room, existing_start, existing_end):
                         overlapfound = True
                         break
                 if overlapfound:
@@ -94,10 +95,68 @@ def getBookings():
         }
 
         for booking in bookings:
-            room_id, bookedSdate, start_time, end_time, booked_for, booked_by = booking
+            room_id, booked_date, start_time, end_time, booked_for, booked_by = booking
             booking_dict['Rooms'].append(room_id)
             booking_dict['Dates'].append(booked_date)
             booking_dict['Start Time'].append(start_time)
             booking_dict['End Time'].append(end_time)
             booking_dict['Booked For'].append(booked_for)
             booking_dict['Booked By'].append(booked_by)
+
+        booking_df = pd.DataFrame(booking_dict)
+        booking_df['Start Time'] = pd.to_datetime(booking_df['Start Time'], format='%H:%M:%S').dt.strftime('%H:%M:%S')
+        booking_df['End Time'] = pd.to_datetime(booking_df['End Time'], format='%H:%M:%S').dt.strftime('%H:%M:%S')
+        booking_df['Dates'] = pd.to_datetime(booking_df['Dates']).dt.date
+
+        view_selection = st.radio('Select View:', ('Timeline View', 'Tabular View'))
+
+        if view_selection == 'Timeline View':
+            # Filter and visualize bookings by date
+            selected_date = st.date_input('Filter by date', date.today())
+            filtered_df = booking_df[booking_df['Dates'] == selected_date]
+
+            if not filtered_df.empty:
+                fig = px.timeline(
+                        filtered_df,
+                        x_start=pd.to_datetime(filtered_df['Start Time'], format='%H:%M:%S'),
+                        x_end=pd.to_datetime(filtered_df['End Time'], format='%H:%M:%S'),
+                        y='Rooms',
+                        title=f"Room Booking Timeline for {selected_date}",
+                        color='Booked For',
+                        hover_data={
+                            'Booked For': True,
+                            'Booked By': True,
+                            'Start Time': False,
+                            'End Time': False,
+                            'Dates': False,
+                        }
+                    )
+                fig.update_layout(
+                        xaxis_title="Time",
+                        yaxis_title='Rooms',
+                        xaxis=dict(tickformat='%H:%M', dtick=1800000, showgrid=True, tickmode='auto'),
+                        yaxis=dict(title_standoff=10)
+                    )
+                st.plotly_chart(fig)
+            else:
+                st.write('No bookings available for the selected date.')
+        else:
+            # Date Filter
+            selected_date = st.date_input('Select Date', date.today())
+        
+            # Room Number Filter
+            room_options = booking_df['Rooms'].unique()
+            selected_room = st.selectbox('Select Room', options=['All'] + list(room_options))
+
+            # Filter DataFrame based on selections
+            if selected_room == 'All':
+                filtered_df = booking_df[booking_df['Dates'] == selected_date]
+            else:
+                filtered_df = booking_df[(booking_df['Dates'] == selected_date) & (booking_df['Rooms'] == selected_room)]
+            st.write(filtered_df)  # Display without index
+
+            
+    else:
+        st.write('No bookings found.')
+
+
