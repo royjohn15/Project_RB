@@ -3,7 +3,7 @@ from components.components import addRoom, getRooms, addBooking, getBookings
 
 
 def main():
-    tabs = st.tabs(['View Bookings', 'Book Room', 'View Rooms', 'Add Rooms', 'Room Statistics'])
+    tabs = st.tabs(['View Bookings', 'Book Room', 'View Rooms', 'Add Rooms'])
 
     with tabs[0]:
         getBookings()

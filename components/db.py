@@ -45,7 +45,7 @@ def add_booking(room_number, date, start_time, end_time, booked_for, booked_by):
 def get_bookings():
     conn = sqlite3.connect('database.db')
     c = conn.cursor()
-    c.execute('SELECT room_id, date, start_time, end_time, booked_for, booked_by  FROM BOOKINGS')
+    c.execute('SELECT booking_id, room_id, date, start_time, end_time, booked_for, booked_by  FROM BOOKINGS')
     bookings = c.fetchall()
     conn.close()
     return bookings
@@ -59,6 +59,12 @@ def get_bookings_by_date(date):
     conn.close()
     return bookings
 
+def delete_booking(booking_id):
+    conn = sqlite3.connect('database.db')
+    c = conn.cursor()
+    c.execute('DELETE FROM BOOKINGS WHERE booking_id = ?', (booking_id, ))
+    conn.commit()
+    conn.close()
 
 
 
